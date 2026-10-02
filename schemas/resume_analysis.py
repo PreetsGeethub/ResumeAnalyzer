@@ -1,10 +1,7 @@
+from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, model_validator
-from datetime import datetime
-from typing import Any
-
-from pydantic import  Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ResumeAnalysisRequest(BaseModel):
@@ -21,6 +18,11 @@ class ResumeAnalysisRequest(BaseModel):
         if self.analysis_type == "general" and self.job_description:
             raise ValueError(
                 "job_description should not be provided for general analysis"
+            )
+
+        if self.job_description and len(self.job_description) > 20000:
+            raise ValueError(
+                "job_description must be 20,000 characters or fewer"
             )
 
         return self
@@ -44,6 +46,8 @@ class ProjectItem(BaseModel):
     name: str | None = None
     technologies: list[str] = Field(default_factory=list)
     description: list[str] = Field(default_factory=list)
+
+
 class ExtractedResumeResponse(BaseModel):
     summary: str | None = None
     skills: list[str] = Field(default_factory=list)
@@ -67,20 +71,16 @@ class ResumeAnalysisResponse(BaseModel):
     analysis_type: str
     job_description: str | None = None
     overall_score: int
-
     extracted: ExtractedResumeResponse
     analysis: ResumeAnalysisData
-
     created_at: datetime
 
     model_config = {
-        "from_attributes": True
+        "from_attributes": True,
     }
-    
-    
+
+
 class ResumeAIOutput(BaseModel):
-    overall_score: int
-
+    overall_score: int = Field(ge=0, le=100)
     extracted: ExtractedResumeResponse
-
     analysis: ResumeAnalysisData
