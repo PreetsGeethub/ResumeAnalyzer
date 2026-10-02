@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
@@ -76,19 +78,14 @@ def update_user_endpoint(
     return update_user(user_id, user, db)
 
 
-@router.post("/users/login")
-def login_user_endpoint(
-    response: Response,
-    user: UserLogin,
-    db: Session = Depends(get_db),
-):
-    tokens = login_user(user, db)
+def set_auth_cookies(response: Response, tokens: dict):
+    is_production = os.getenv("ENVIRONMENT", "development").lower() == "production"
 
     response.set_cookie(
         key="access_token",
         value=tokens["access_token"],
         httponly=True,
-        secure=True,
+        secure=is_production,
         samesite="lax",
         max_age=15 * 60,
     )
@@ -97,11 +94,20 @@ def login_user_endpoint(
         key="refresh_token",
         value=tokens["refresh_token"],
         httponly=True,
-        secure=True,
+        secure=is_production,
         samesite="lax",
         max_age=7 * 24 * 60 * 60,
     )
 
+
+@router.post("/users/login")
+def login_user_endpoint(
+    response: Response,
+    user: UserLogin,
+    db: Session = Depends(get_db),
+):
+    tokens = login_user(user, db)
+    set_auth_cookies(response, tokens)
     return {"message": "Login successful"}
 
 
@@ -112,25 +118,13 @@ def refresh_token_endpoint(
     db: Session = Depends(get_db),
 ):
     access_token, refresh_token = refresh_access_token(request=request, db=db)
-
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=15 * 60,
+    set_auth_cookies(
+        response,
+        {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+        },
     )
-
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=7 * 24 * 60 * 60,
-    )
-
     return {"message": "Access token refreshed"}
 
 
