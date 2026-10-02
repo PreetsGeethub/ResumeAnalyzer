@@ -72,6 +72,15 @@ export async function getResumes(page = 1, limit = 10) {
   return response.json() as Promise<ResumeListResponse>;
 }
 
+export async function getResume(resumeId: number) {
+  const response = await fetch(`${API_BASE_URL}/resumes/${resumeId}`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json() as Promise<Resume>;
+}
+
 export async function uploadResume(title: string, file: File) {
   const formData = new FormData();
   formData.append("title", title);
@@ -101,16 +110,38 @@ export async function analyzeResume(
   analysisType: AnalysisType,
   jobDescription?: string,
 ) {
-  const response = await fetch(`${API_BASE_URL}/resumes/${resumeId}/analyze`, {
-    method: "POST",
+  const response = await fetch(
+    `${API_BASE_URL}/resumes/${resumeId}/analyze`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        analysis_type: analysisType,
+        ...(analysisType === "job_match"
+          ? { job_description: jobDescription }
+          : {}),
+      }),
+    },
+  );
+
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json() as Promise<ResumeAnalysis>;
+}
+
+export async function getResumeAnalyses(resumeId: number) {
+  const response = await fetch(
+    `${API_BASE_URL}/resumes/${resumeId}/analyses`,
+    { credentials: "include" },
+  );
+
+  if (!response.ok) throw new Error(await parseError(response));
+  return response.json() as Promise<ResumeAnalysis[]>;
+}
+
+export async function getAnalysis(analysisId: number) {
+  const response = await fetch(`${API_BASE_URL}/analyses/${analysisId}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      analysis_type: analysisType,
-      ...(analysisType === "job_match"
-        ? { job_description: jobDescription }
-        : {}),
-    }),
   });
 
   if (!response.ok) throw new Error(await parseError(response));
