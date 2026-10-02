@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Fraunces, Inter } from "next/font/google";
 import { FormEvent, useMemo, useState } from "react";
+import { registerUser } from "@/lib/api";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -79,8 +80,6 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      const { registerUser } = await import("@/lib/api");
-
       await registerUser({
         name: name.trim(),
         email: email.trim(),
