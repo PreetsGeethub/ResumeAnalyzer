@@ -1,35 +1,31 @@
-
 from datetime import datetime
-from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+
+from schemas.resume_analysis import (
+    EducationItem,
+    ExperienceItem,
+    ProjectItem,
+    ResumeAnalysisData,
+)
+
 
 class ResumeResponse(BaseModel):
     id: int
     user_id: int
     title: str
     filename: str
+    created_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
-
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExtractedResumeResponse(BaseModel):
     summary: str | None = None
     skills: list[str] = Field(default_factory=list)
-    experience: list[dict[str, Any]] = Field(default_factory=list)
-    education: list[dict[str, Any]] = Field(default_factory=list)
-    projects: list[dict[str, Any]] = Field(default_factory=list)
-
-
-class ResumeAnalysisData(BaseModel):
-    strengths: list[str] = Field(default_factory=list)
-    weaknesses: list[str] = Field(default_factory=list)
-    matched_skills: list[str] = Field(default_factory=list)
-    missing_skills: list[str] = Field(default_factory=list)
-    recommendations: list[str] = Field(default_factory=list)
+    experience: list[ExperienceItem] = Field(default_factory=list)
+    education: list[EducationItem] = Field(default_factory=list)
+    projects: list[ProjectItem] = Field(default_factory=list)
 
 
 class ResumeAnalysisResponse(BaseModel):
@@ -42,6 +38,4 @@ class ResumeAnalysisResponse(BaseModel):
     analysis: ResumeAnalysisData
     created_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = ConfigDict(from_attributes=True)
