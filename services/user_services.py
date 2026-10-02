@@ -1,9 +1,9 @@
-from fastapi import Depends, HTTPException, status, Request,Response
+from fastapi import HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 import jwt
 from models.refresh_token import RefreshToken
 from models.user import  User as UserModel
-from schemas.user import UserCreate,User, UserUpdate, UserLogin
+from schemas.user import UserCreate, UserUpdate, UserLogin
 from .auth_services import hash_password, verify_password
 from .token_services import create_access_token, create_refresh_token
 
@@ -108,14 +108,14 @@ def login_user(user: UserLogin, db: Session):
 
     if not db_user:
         raise HTTPException(
-            status_code=404,
-            detail=f"User with email {user.email} not found"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
         )
 
     if not verify_password(user.password, db_user.password_hash):
         raise HTTPException(
-            status_code=401,
-            detail="Incorrect password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
         )
     access_token = create_access_token(db_user.id)
     refresh_token = create_refresh_token(db, db_user.id)
