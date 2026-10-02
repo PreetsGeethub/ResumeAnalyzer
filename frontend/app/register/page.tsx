@@ -79,11 +79,22 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
     try {
-      // TODO: replace with the real account-creation request.
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      console.log({ name, email, password });
-    } catch {
-      setSubmitError("Something went wrong on our end. Try again in a moment.");
+      const { registerUser } = await import("@/lib/api");
+
+      await registerUser({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        age: 18,
+      });
+
+      window.location.href = "/login?registered=1";
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong on our end. Try again in a moment.",
+      );
     } finally {
       setIsSubmitting(false);
     }
