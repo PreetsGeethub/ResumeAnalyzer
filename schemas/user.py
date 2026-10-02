@@ -11,7 +11,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
-    age: int
+    age: int | None = Field(None, ge=18, le=100)
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -23,7 +23,7 @@ class UserUpdate(BaseModel):
 class UserCreate(BaseModel):
     name: str
     email: str
-    age: int = Field(..., ge=18, le=100)
+    age: int | None = Field(None, ge=18, le=100)
     password: str
     
 class UserLogin(BaseModel):
